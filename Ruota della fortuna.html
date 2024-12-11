@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gira la ruota della fortuna e vinci fantastici premi!">
+    <title>Ruota della Fortuna</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #004d98;
+        }
+        .wheel {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(#ffcc00 0% 25%, #ff5733 25% 50%, #33b5ff 50% 75%, #9b59b6 75% 100%);
+            margin: 20px auto;
+            transition: transform 4s ease-out;
+        }
+        .spin-btn {
+            background-color: #004d98;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+        .spin-btn:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #ff5733;
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #004d98;
+            color: white;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ruota della Fortuna</h1>
+        <div class="wheel" id="wheel"></div>
+        <button class="spin-btn" id="spinButton">Gira la ruota</button>
+        <p class="message" id="message"></p>
+    </div>
+    <footer>
+        &copy; 2024 Ruota della Fortuna - Tutti i diritti riservati.
+    </footer>
+
+    <script>
+        const spinButton = document.getElementById('spinButton');
+        const wheel = document.getElementById('wheel');
+        const message = document.getElementById('message');
+
+        const prizes = ['€100', 'Macbook Pro', 'iPhone', 'Buono Amazon', 'Viaggio a Parigi', 'Pizza Gratis'];
+        
+        // Funzione per generare un angolo casuale per la ruota
+        function getRandomAngle() {
+            return Math.floor(Math.random() * 360);
+        }
+
+        // Funzione per girare la ruota
+        function spinWheel() {
+            // Disabilita il pulsante per evitare clic durante la rotazione
+            spinButton.disabled = true;
+            // Rotazione della ruota (4 secondi)
+            const rotation = getRandomAngle() + 3600; // +3600 per farla girare più volte prima di fermarsi
+            wheel.style.transform = `rotate(${rotation}deg)`;
+
+            // Dopo che la ruota è finita di girare, mostra il premio
+            setTimeout(() => {
+                const prizeIndex = Math.floor((rotation % 360) / 60); // 60° per ogni premio
+                message.textContent = `Hai vinto: ${prizes[prizeIndex]}`;
+                // Abilita di nuovo il pulsante dopo 4 secondi
+                setTimeout(() => {
+                    spinButton.disabled = false;
+                }, 4000);
+            }, 4000);
+        }
+
+        // Verifica se l'utente può girare la ruota (12 ore)
+        function canSpin() {
+            const lastSpinTime = localStorage.getItem('lastSpinTime');
+            const currentTime = new Date().getTime();
+
+            if (!lastSpinTime) {
+                // Se è la prima volta, consenti di girare la ruota
+                return true;
+            }
+
+            // Se sono passate meno di 12 ore
+            const timeDifference = currentTime - lastSpinTime;
+            if (timeDifference < 12 * 60 * 60 * 1000) {
+                const timeLeft = 12 * 60 * 60 * 1000 - timeDifference;
+                const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                message.textContent = `Puoi girare di nuovo tra ${hoursLeft} ore e ${minutesLeft} minuti.`;
+                spinButton.disabled = true;
+                return false;
+            }
+            return true;
+        }
+
+        // Funzione per registrare l'ultimo giro della ruota
+        function recordSpinTime() {
+            const currentTime = new Date().getTime();
+            localStorage.setItem('lastSpinTime', currentTime);
+        }
+
+        // Aggiungi evento al pulsante di spin
+        spinButton.addEventListener('click', () => {
+            if (canSpin()) {
+                spinWheel();
+                recordSpinTime();
+            }
+        });
+
+        // Inizializza il messaggio
+        if (canSpin()) {
+            message.textContent = 'Clicca sul pulsante per girare la ruota!';
+        }
+    </script>
+</body>
+</html>
